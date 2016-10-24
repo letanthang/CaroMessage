@@ -8,28 +8,93 @@
 
 import UIKit
 import Messages
+import SpriteKit
+import GameplayKit
 
 class MessagesViewController: MSMessagesAppViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+       
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+   
+    @IBAction func playTapped(_ sender: AnyObject) {
+        requestPresentationStyle(.expanded)
     }
+    
     
     // MARK: - Conversation Handling
     
     override func willBecomeActive(with conversation: MSConversation) {
-        // Called when the extension is about to move from the inactive to active state.
-        // This will happen when the extension is about to present UI.
-        
-        // Use this method to configure the extension and restore previously stored state.
+        if presentationStyle == .expanded {
+            displayGameController(conversation: conversation, identifier: "CaroGame")
+        }
     }
     
+    func displayGameController(conversation: MSConversation?, identifier: String) {
+        guard let vc = storyboard?.instantiateViewController(withIdentifier: identifier) as? GameViewController else {
+            return
+        }
+        
+        addChildViewController(vc)
+        // make child vc fill our view
+        vc.view.frame = view.bounds
+        vc.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(vc.view)
+        
+        vc.view.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        vc.view.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        vc.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        
+        //tell the child it has moved to a new parent controller
+        vc.didMove(toParentViewController: self)
+        
+    }
+    
+   
+    func createMessage(with rows: [[Stone]]) {
+        // return the extension to compact mode
+        requestPresentationStyle(.compact)
+        
+        //make sure we have a conversation to work with
+        guard let conversation = activeConversation else { return }
+        
+        var component = URLComponents()
+        var items = [URLQueryItem]()
+        
+        
+        
+        let data = try! JSONSerialization.data(withJSONObject: rows, options: [])
+        
+        let rowsString = String(data: data, encoding: String.Encoding.utf8)
+            
+        let dateItem = URLQueryItem(name: "rows", value: rowsString)
+        items.append(dateItem)
+            
+            
+            
+        component.queryItems = items
+        
+        //use existing session or create new one
+        let session = conversation.selectedMessage?.session ?? MSSession()
+        
+        //create new message from session and url
+        let message = MSMessage(session: session)
+        message.url = component.url
+        
+        //create a blank, default message layout
+        let layout = MSMessageTemplateLayout()
+        message.layout = layout
+        
+        conversation.insert(message) { (error) in
+            if let error = error {
+                print(error)
+            }
+        }
+        
+    }
     override func didResignActive(with conversation: MSConversation) {
         // Called when the extension is about to move from the active to inactive state.
         // This will happen when the user dissmises the extension, changes to a different
@@ -58,9 +123,16 @@ class MessagesViewController: MSMessagesAppViewController {
     }
     
     override func willTransition(to presentationStyle: MSMessagesAppPresentationStyle) {
-        // Called before the extension transitions to a new presentation style.
-    
-        // Use this method to prepare for the change in presentation style.
+        for child in childViewControllers {
+            child.willMove(toParentViewController: nil)
+            child.view.removeFromSuperview()
+            child.removeFromParentViewController()
+            
+        }
+        
+        if presentationStyle == .expanded {
+            displayGameController(conversation: activeConversation, identifier: "CaroGame")
+        }
     }
     
     override func didTransition(to presentationStyle: MSMessagesAppPresentationStyle) {
