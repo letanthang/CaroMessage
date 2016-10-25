@@ -9,10 +9,19 @@
 import UIKit
 import SpriteKit
 import GameplayKit
+import Messages
 
 class GameViewController: UIViewController {
     
     weak var delegate: MessagesViewController!
+    
+    var rowsString = ""
+    
+    var player = 0
+    var row = 0
+    var col = 0
+    
+    var caroGameScene: GameScene?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,6 +33,7 @@ class GameViewController: UIViewController {
             // Get the SKScene from the loaded GKScene
             if let sceneNode = scene.rootNode as! GameScene? {
                 
+                caroGameScene = sceneNode
                 
                 // Set the scale mode to scale to fit the window
                 sceneNode.scaleMode =  .aspectFit //.resizeFill
@@ -31,6 +41,12 @@ class GameViewController: UIViewController {
                 // Present the scene
                 if let view = self.view as! SKView? {
                     view.presentScene(sceneNode)
+                    
+                    
+                    sceneNode.loadRows(rowsString: rowsString)
+                    sceneNode.loadLastMove(row: row, col: col)
+                    sceneNode.loadPlayerTurn(index: player)
+                    
                     
                     view.ignoresSiblingOrder = true
                     
@@ -40,11 +56,41 @@ class GameViewController: UIViewController {
             }
         }
     }
+    
+    func load(message: MSMessage?) {
+        guard let message = message else { return }
+        guard let messageURL = message.url else { return }
+        guard let components = URLComponents(url: messageURL, resolvingAgainstBaseURL: false) else { return }
+        guard let queryItems = components.queryItems else { return }
+        
+        for item in queryItems {
+            
+            if item.name == "rows" {
+                rowsString = item.value ?? ""
+            } else if item.name == "player" {
+                player = Int(item.value ?? "") ?? 0
+            } else if item.name == "row" {
+                row = Int(item.value ?? "") ?? 0
+            } else if item.name == "col" {
+                col = Int(item.value ?? "") ?? 0
+            }
+            
+            
+        }
+        
+    }
+    
 
     @IBAction func sendTapped(_ sender: AnyObject) {
         
-        delegate.createMessage(with: [[Stone]]())
+        guard let caroGameScene = caroGameScene else { return }
+        let text = caroGameScene.getBoardRows()
         
+        let player: Int =  Player.allPlayers.index(of: caroGameScene.board.currentPlayer)!
+        
+        let move = caroGameScene.board.lastMove
+        
+        delegate.createMessage(rowsString: text, player: player, row: move.row, col: move.col)
     }
     override var shouldAutorotate: Bool {
         return true

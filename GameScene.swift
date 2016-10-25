@@ -28,8 +28,8 @@ class GameScene: SKScene {
         addChild(background)
         
         let gameBoard = SKSpriteNode(imageNamed: "board")
-        print("bg: \(background.size.width) x \(background.size.height) ")
-        print("gameBoard: \(gameBoard.size.width) x \(gameBoard.size.height) ")
+        print("bg: \(background.size.width) x \(background.size.height)")
+        print("gameBoard: \(gameBoard.size.width) x \(gameBoard.size.height)")
         gameBoard.name = "board"
         gameBoard.zPosition = 2
         
@@ -86,16 +86,29 @@ class GameScene: SKScene {
  
         */
         
-        let rowString = "[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,2,3,0,0,0,0],[0,0,2,3,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]"
         
-        loadRows(rowsString: rowString)
         
+    }
+    
+    
+    func loadLastMove(row: Int, col: Int) {
+        board.lastMove = Move(row: row, col: col)
+    }
+    
+    func loadPlayerTurn(index: Int) {
+        board.currentPlayer = Player.allPlayers[index]
     }
     
     func loadRows(rowsString: String) {
         
+        var text = rowsString
+        
+        if rowsString.characters.count == 0 {
+            text = "[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,2,3,0,0,0,0],[0,0,2,3,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]"
+        }
+        
         do {
-            if let data = rowsString.data(using: String.Encoding.utf8) {
+            if let data = text.data(using: String.Encoding.utf8) {
                 if let rowsInt = try JSONSerialization.jsonObject(with: data, options: []) as? [[Int]] {
                     board.rows = rowsInt.map { $0.map { StoneColor(rawValue: $0)! }}
                     
@@ -118,10 +131,10 @@ class GameScene: SKScene {
     func getBoardRows() -> String {
         let rows = board.rows
         
-        let tests: [[Int]] = rows.map { $0.map { $0.hashValue } }
+        let rowsInt: [[Int]] = rows.map { $0.map { $0.hashValue } }
         
         do {
-            let data = try JSONSerialization.data(withJSONObject: tests, options: [])
+            let data = try JSONSerialization.data(withJSONObject: rowsInt, options: [])
             let text = String(data: data, encoding: String.Encoding.utf8)
             
             return text ?? ""

@@ -37,6 +37,9 @@ class MessagesViewController: MSMessagesAppViewController {
             return
         }
         
+        vc.load(message: conversation?.selectedMessage)
+        vc.delegate = self
+        
         addChildViewController(vc)
         // make child vc fill our view
         vc.view.frame = view.bounds
@@ -54,7 +57,7 @@ class MessagesViewController: MSMessagesAppViewController {
     }
     
    
-    func createMessage(with rows: [[Stone]]) {
+    func createMessage(rowsString: String, player: Int, row: Int, col: Int) {
         // return the extension to compact mode
         requestPresentationStyle(.compact)
         
@@ -63,15 +66,18 @@ class MessagesViewController: MSMessagesAppViewController {
         
         var component = URLComponents()
         var items = [URLQueryItem]()
-        
-        
-        
-        let data = try! JSONSerialization.data(withJSONObject: rows, options: [])
-        
-        let rowsString = String(data: data, encoding: String.Encoding.utf8)
             
-        let dateItem = URLQueryItem(name: "rows", value: rowsString)
-        items.append(dateItem)
+        var item = URLQueryItem(name: "rows", value: rowsString)
+        items.append(item)
+        
+        item = URLQueryItem(name: "player", value: String(player))
+        items.append(item)
+        
+        item = URLQueryItem(name: "row", value: String(row))
+        items.append(item)
+        
+        item = URLQueryItem(name: "col", value: String(col))
+        items.append(item)
             
             
             
@@ -90,7 +96,7 @@ class MessagesViewController: MSMessagesAppViewController {
         
         conversation.insert(message) { (error) in
             if let error = error {
-                print(error)
+                print("There was an error inserting message into conversation: \(error)")
             }
         }
         
