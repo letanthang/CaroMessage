@@ -73,7 +73,7 @@ class GameScene: SKScene {
         }
         
         
-        
+        /*
         rows[4][3].setPlayer(.white)
         rows[4][2].setPlayer(.black)
         rows[3][3].setPlayer(.white)
@@ -83,9 +83,56 @@ class GameScene: SKScene {
         board.rows[4][2] = .black
         board.rows[3][3] = .white
         board.rows[3][2] = .black
+ 
+        */
+        
+        let rowString = "[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,2,3,0,0,0,0],[0,0,2,3,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]"
+        
+        loadRows(rowsString: rowString)
         
     }
     
+    func loadRows(rowsString: String) {
+        
+        do {
+            if let data = rowsString.data(using: String.Encoding.utf8) {
+                if let rowsInt = try JSONSerialization.jsonObject(with: data, options: []) as? [[Int]] {
+                    board.rows = rowsInt.map { $0.map { StoneColor(rawValue: $0)! }}
+                    
+                    for (x, row) in board.rows.enumerated() {
+                        for (y, value) in row.enumerated() {
+                            if value == .white || value == .black {
+                                rows[x][y].setPlayer(value)
+                            }
+                        }
+                    }
+                    
+                }
+            }
+        } catch (let error) {
+            print("There was an error load rows: \(error.localizedDescription)")
+        }
+        
+    }
+    
+    func getBoardRows() -> String {
+        let rows = board.rows
+        
+        let tests: [[Int]] = rows.map { $0.map { $0.hashValue } }
+        
+        do {
+            let data = try JSONSerialization.data(withJSONObject: tests, options: [])
+            let text = String(data: data, encoding: String.Encoding.utf8)
+            
+            return text ?? ""
+            
+        } catch (let error) {
+            print("There was an error serialize rows: \(error.localizedDescription)")
+        }
+        
+        return ""
+        
+    }
     
     
     

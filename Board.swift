@@ -57,15 +57,17 @@ class Board: NSObject, GKGameModel {
     
     func makeMove(player: Player, row: Int, col: Int) -> [Move] {
         
-        var tests = [[Int]]()
         
-        //tests = rows.map { $0.map { StoneColor.$0.rawValue } }
+        
+        /*
+        let tests: [[Int]] = rows.map { $0.map { $0.hashValue } }
         
         if let data = try? JSONSerialization.data(withJSONObject: tests, options: []) {
             let text = String(data: data, encoding: String.Encoding.utf8)
             print(text)
         }
         
+         */
         
         //1: create an array to hold all the captured stones
         var didCapture = [Move]()

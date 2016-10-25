@@ -7,6 +7,6 @@
 //
 
 import Foundation
-enum StoneColor {
+enum StoneColor: Int {
     case empty, choice, black, white
 }
